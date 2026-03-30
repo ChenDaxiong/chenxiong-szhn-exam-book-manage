@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书管理系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; background: #f5f6fa; color: #333; }
+        .header { background: linear-gradient(135deg, #2b5876, #4e8098); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; font-weight: 500; }
+        .header .user-info { display: flex; align-items: center; gap: 12px; }
+        .header .user-info span { font-size: 14px; }
+        .header button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 16px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+        .header button:hover { background: rgba(255,255,255,0.25); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .login-box { max-width: 400px; margin: 80px auto; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .login-box h2 { text-align: center; margin-bottom: 24px; color: #2b5876; font-weight: 500; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #666; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { border-color: #4e8098; outline: none; box-shadow: 0 0 0 2px rgba(78,128,152,0.2); }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+        .btn-primary { background: #4e8098; color: #fff; }
+        .btn-primary:hover { background: #5a92aa; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #ec7063; }
+        .btn-success { background: #27ae60; color: #fff; }
+        .btn-success:hover { background: #2ecc71; }
+        .btn-block { width: 100%; padding: 10px; font-size: 16px; }
+        .tabs { display: flex; gap: 0; margin-bottom: 24px; background: #fff; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .tabs .tab { padding: 12px 24px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 14px; transition: all 0.2s; }
+        .tabs .tab.active { color: #2b5876; border-bottom-color: #2b5876; background: #eef4f8; }
+        .tabs .tab:hover { background: #f5f5f5; }
+        .card { background: #fff; border-radius: 4px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; }
+        .toolbar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .toolbar input, .toolbar select { padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        table th, table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        table th { background: #fafbfc; font-weight: 600; color: #666; }
+        table tr:hover { background: #f8fafb; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+        .pagination button { padding: 6px 12px; border: 1px solid #d9d9d9; background: #fff; border-radius: 4px; cursor: pointer; }
+        .pagination button:hover { border-color: #4e8098; color: #4e8098; }
+        .pagination button.active { background: #4e8098; color: #fff; border-color: #4e8098; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 8px; padding: 24px; min-width: 400px; z-index: 1001; }
+        .modal h3 { margin-bottom: 16px; }
+        .modal .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+        .msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 4px; color: #fff; z-index: 2000; font-size: 14px; }
+        .msg-success { background: #27ae60; }
+        .msg-error { background: #e74c3c; }
+        .status-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .status-on { background: #eafaf1; color: #27ae60; border: 1px solid #a9dfbf; }
+        .status-off { background: #fdedec; color: #e74c3c; border: 1px solid #f5b7b1; }
+        .role-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .role-super { background: #fef9e7; color: #d4ac0d; border: 1px solid #f9e79f; }
+        .role-admin { background: #eaf2f8; color: #2e86c1; border: 1px solid #aed6f1; }
+        .role-user { background: #f4f6f6; color: #717d7e; border: 1px solid #d5dbdb; }
+        .hidden { display: none; }
+        .link-btn { background: none; border: none; color: #4e8098; cursor: pointer; font-size: 14px; text-decoration: underline; }
+        .link-btn:hover { color: #2b5876; }
+    </style>
+</head>
+<body>
+
+<!-- 登录页面 -->
+<div id="loginPage">
+    <div class="login-box">
+        <h2>图书管理系统</h2>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="loginUsername" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPassword" placeholder="请输入密码">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="doLogin()">登 录</button>
+        <p style="text-align:center;margin-top:16px;">
+            <button class="link-btn" onclick="showRegisterPage()">没有账号？立即注册</button>
+        </p>
+    </div>
+</div>
+
+<!-- 注册页面 -->
+<div id="registerPage" class="hidden">
+    <div class="login-box">
+        <h2>用户注册</h2>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="regUsername" placeholder="4-20个字符，字母开头">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="regPassword" placeholder="8-20个字符">
+        </div>
+        <div class="form-group">
+            <label>昵称</label>
+            <input type="text" id="regNickname" placeholder="4-20个字符">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="doRegister()">注 册</button>
+        <p style="text-align:center;margin-top:16px;">
+            <button class="link-btn" onclick="showLoginPage()">已有账号？返回登录</button>
+        </p>
+    </div>
+</div>
+
+<!-- 主页面 -->
+<div id="mainPage" class="hidden">
+    <div class="header">
+        <h1>图书管理系统</h1>
+        <div class="user-info">
+            <span id="currentUserInfo"></span>
+            <button onclick="doLogout()">退出登录</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="tabs" id="tabBar">
+            <div class="tab active" data-tab="book" onclick="switchTab('book')">图书管理</div>
+            <div class="tab" data-tab="category" onclick="switchTab('category')">分类管理</div>
+            <div class="tab hidden" data-tab="user" onclick="switchTab('user')" id="userTab">用户管理</div>
+        </div>
+
+        <!-- 图书管理 -->
+        <div id="bookPanel" class="card">
+            <div class="toolbar">
+                <input type="text" id="searchBookName" placeholder="书名搜索">
+                <input type="text" id="searchAuthor" placeholder="作者搜索">
+                <select id="searchCategory"><option value="">全部分类</option></select>
+                <button class="btn btn-primary" onclick="loadBooks()">查询</button>
+                <button class="btn btn-success hidden" id="addBookBtn" onclick="showBookModal()">新增图书</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>书名</th><th>作者</th><th>出版社</th><th>分类</th><th>库存</th><th>状态</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="bookTable"></tbody>
+            </table>
+            <div class="pagination" id="bookPagination"></div>
+        </div>
+
+        <!-- 分类管理 -->
+        <div id="categoryPanel" class="card hidden">
+            <div class="toolbar">
+                <button class="btn btn-success hidden" id="addCategoryBtn" onclick="showCategoryModal()">新增分类</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>分类名称</th><th>排序</th><th>父分类ID</th><th>操作</th></tr>
+                </thead>
+                <tbody id="categoryTable"></tbody>
+            </table>
+        </div>
+
+        <!-- 用户管理 -->
+        <div id="userPanel" class="card hidden">
+            <div class="toolbar">
+                <input type="text" id="searchUsername" placeholder="用户名搜索">
+                <button class="btn btn-primary" onclick="loadUsers()">查询</button>
+                <button class="btn btn-success" onclick="showUserModal()">新增用户</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+                </thead>
+                <tbody id="userTable"></tbody>
+            </table>
+            <div class="pagination" id="userPagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 图书弹窗 -->
+<div class="modal-overlay" id="bookModalOverlay" onclick="closeBookModal()"></div>
+<div class="modal hidden" id="bookModal">
+    <h3 id="bookModalTitle">新增图书</h3>
+    <input type="hidden" id="bookId">
+    <div class="form-group"><label>书名</label><input type="text" id="bookName"></div>
+    <div class="form-group"><label>作者</label><input type="text" id="bookAuthor"></div>
+    <div class="form-group"><label>出版社</label><input type="text" id="bookPublisher"></div>
+    <div class="form-group"><label>分类</label><select id="bookCategoryId"></select></div>
+    <div class="form-group"><label>库存</label><input type="number" id="bookStock" value="0"></div>
+    <div class="form-group"><label>状态</label><select id="bookStatus"><option value="1">上架</option><option value="0">下架</option></select></div>
+    <div class="modal-footer">
+        <button class="btn" onclick="closeBookModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveBook()">保存</button>
+    </div>
+</div>
+
+<!-- 分类弹窗 -->
+<div class="modal-overlay" id="categoryModalOverlay" onclick="closeCategoryModal()"></div>
+<div class="modal hidden" id="categoryModal">
+    <h3 id="categoryModalTitle">新增分类</h3>
+    <input type="hidden" id="categoryId">
+    <div class="form-group"><label>分类名称</label><input type="text" id="categoryName"></div>
+    <div class="form-group"><label>排序</label><input type="number" id="categorySortOrder" value="0"></div>
+    <div class="form-group"><label>父分类ID</label><input type="number" id="categoryParentId" value="0"></div>
+    <div class="modal-footer">
+        <button class="btn" onclick="closeCategoryModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveCategory()">保存</button>
+    </div>
+</div>
+
+<!-- 用户弹窗 -->
+<div class="modal-overlay" id="userModalOverlay" onclick="closeUserModal()"></div>
+<div class="modal hidden" id="userModal">
+    <h3 id="userModalTitle">新增用户</h3>
+    <input type="hidden" id="userId">
+    <div class="form-group"><label>用户名</label><input type="text" id="userUsername"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="userPassword" placeholder="修改时留空不更新"></div>
+    <div class="form-group"><label>昵称</label><input type="text" id="userNickname"></div>
+    <div class="form-group"><label>角色</label><select id="userRoleCode"><option value="ADMIN">管理员</option><option value="USER">普通用户</option></select></div>
+    <div class="form-group"><label>状态</label><select id="userStatus"><option value="1">启用</option><option value="0">禁用</option></select></div>
+    <div class="modal-footer">
+        <button class="btn" onclick="closeUserModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveUser()">保存</button>
+    </div>
+</div>
+
+<script>
+    // 全局变量
+    let currentUser = null;
+    let categories = [];
+    let bookPage = { current: 1, size: 10 };
+    let userPage = { current: 1, size: 10 };
+
+    // 角色判断工具
+    function isSuperAdmin() { return currentUser && currentUser.roleCode === 'SUPER_ADMIN'; }
+    function isAdmin() { return currentUser && (currentUser.roleCode === 'ADMIN' || currentUser.roleCode === 'SUPER_ADMIN'); }
+    function isUser() { return currentUser && currentUser.roleCode === 'USER'; }
+
+    function getRoleLabel(roleCode) {
+        if (roleCode === 'SUPER_ADMIN') return '超级管理员';
+        if (roleCode === 'ADMIN') return '管理员';
+        return '普通用户';
+    }
+
+    function getRoleTagClass(roleCode) {
+        if (roleCode === 'SUPER_ADMIN') return 'role-super';
+        if (roleCode === 'ADMIN') return 'role-admin';
+        return 'role-user';
+    }
+
+    // 工具函数
+    function showMsg(text, type) {
+        const msg = document.createElement('div');
+        msg.className = 'msg msg-' + type;
+        msg.textContent = text;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2500);
+    }
+
+    async function request(url, options = {}) {
+        const config = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...options };
+        try {
+            const resp = await fetch(url, config);
+            const data = await resp.json();
+            if (data.code !== 200) {
+                showMsg(data.message || '请求失败', 'error');
+                if (data.code === 401) { showLoginPage(); }
+                return null;
+            }
+            return data;
+        } catch (e) {
+            showMsg('网络错误', 'error');
+            return null;
+        }
+    }
+
+    // 页面切换
+    function showLoginPage() {
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('registerPage').classList.add('hidden');
+        document.getElementById('mainPage').classList.add('hidden');
+    }
+
+    function showRegisterPage() {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('registerPage').classList.remove('hidden');
+        document.getElementById('mainPage').classList.add('hidden');
+    }
+
+    function showMainPage() {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('registerPage').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+        document.getElementById('currentUserInfo').textContent = currentUser.nickname + '（' + getRoleLabel(currentUser.roleCode) + '）';
+
+        // 超级管理员：显示用户管理标签页
+        document.getElementById('userTab').classList.toggle('hidden', !isSuperAdmin());
+        // 管理员及以上：显示新增图书/分类按钮
+        document.getElementById('addBookBtn').classList.toggle('hidden', !isAdmin());
+        document.getElementById('addCategoryBtn').classList.toggle('hidden', !isAdmin());
+
+        loadCategories();
+        loadBooks();
+    }
+
+    // 登录
+    async function doLogin() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!username || !password) { showMsg('请输入用户名和密码', 'error'); return; }
+        const data = await request('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+        if (data) {
+            currentUser = data.data;
+            showMsg('登录成功', 'success');
+            showMainPage();
+        }
+    }
+
+    // 注册
+    async function doRegister() {
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const nickname = document.getElementById('regNickname').value;
+        if (!username || !password || !nickname) { showMsg('请填写所有字段', 'error'); return; }
+        const data = await request('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, password, nickname })
+        });
+        if (data) {
+            currentUser = data.data;
+            showMsg('注册成功', 'success');
+            showMainPage();
+        }
+    }
+
+    // 登出
+    async function doLogout() {
+        await request('/api/auth/logout', { method: 'POST' });
+        currentUser = null;
+        showLoginPage();
+    }
+
+    // Tab 切换
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById('bookPanel').classList.toggle('hidden', tab !== 'book');
+        document.getElementById('categoryPanel').classList.toggle('hidden', tab !== 'category');
+        document.getElementById('userPanel').classList.toggle('hidden', tab !== 'user');
+        if (tab === 'book') loadBooks();
+        if (tab === 'category') loadCategoriesList();
+        if (tab === 'user') loadUsers();
+    }
+
+    // 分类
+    async function loadCategories() {
+        const data = await request('/api/category/list');
+        if (data) {
+            categories = data.data || [];
+            const sel = document.getElementById('searchCategory');
+            const bookSel = document.getElementById('bookCategoryId');
+            sel.innerHTML = '<option value="">全部分类</option>';
+            bookSel.innerHTML = '<option value="">请选择分类</option>';
+            categories.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.categoryName}</option>`;
+                bookSel.innerHTML += `<option value="${c.id}">${c.categoryName}</option>`;
+            });
+        }
+    }
+
+    async function loadCategoriesList() {
+        const data = await request('/api/category/list');
+        if (data) {
+            categories = data.data || [];
+            const tbody = document.getElementById('categoryTable');
+            const canEdit = isAdmin();
+            tbody.innerHTML = categories.map(c => `<tr>
+                <td>${c.id}</td><td>${c.categoryName}</td><td>${c.sortOrder}</td><td>${c.parentId}</td>
+                <td>${canEdit ? `<button class="btn btn-primary" onclick="editCategory(${c.id})">编辑</button> <button class="btn btn-danger" onclick="deleteCategory(${c.id})">删除</button>` : '-'}</td>
+            </tr>`).join('');
+        }
+    }
+
+    function showCategoryModal(id) {
+        document.getElementById('categoryModalTitle').textContent = id ? '编辑分类' : '新增分类';
+        document.getElementById('categoryId').value = '';
+        document.getElementById('categoryName').value = '';
+        document.getElementById('categorySortOrder').value = '0';
+        document.getElementById('categoryParentId').value = '0';
+        document.getElementById('categoryModal').classList.remove('hidden');
+        document.getElementById('categoryModalOverlay').style.display = 'block';
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('categoryModal').classList.add('hidden');
+        document.getElementById('categoryModalOverlay').style.display = 'none';
+    }
+
+    async function editCategory(id) {
+        const data = await request('/api/category/detail/' + id);
+        if (data && data.data) {
+            const c = data.data;
+            document.getElementById('categoryModalTitle').textContent = '编辑分类';
+            document.getElementById('categoryId').value = c.id;
+            document.getElementById('categoryName').value = c.categoryName;
+            document.getElementById('categorySortOrder').value = c.sortOrder;
+            document.getElementById('categoryParentId').value = c.parentId;
+            document.getElementById('categoryModal').classList.remove('hidden');
+            document.getElementById('categoryModalOverlay').style.display = 'block';
+        }
+    }
+
+    async function saveCategory() {
+        const id = document.getElementById('categoryId').value;
+        const body = {
+            categoryName: document.getElementById('categoryName').value,
+            sortOrder: parseInt(document.getElementById('categorySortOrder').value) || 0,
+            parentId: parseInt(document.getElementById('categoryParentId').value) || 0
+        };
+        if (!body.categoryName) { showMsg('分类名称不能为空', 'error'); return; }
+        let data;
+        if (id) {
+            body.id = parseInt(id);
+            data = await request('/api/category/update', { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+            data = await request('/api/category/add', { method: 'POST', body: JSON.stringify(body) });
+        }
+        if (data) { showMsg('保存成功', 'success'); closeCategoryModal(); loadCategoriesList(); loadCategories(); }
+    }
+
+    async function deleteCategory(id) {
+        if (!confirm('确定删除该分类吗？')) return;
+        const data = await request('/api/category/delete/' + id, { method: 'DELETE' });
+        if (data) { showMsg('删除成功', 'success'); loadCategoriesList(); loadCategories(); }
+    }
+
+    // 图书
+    async function loadBooks() {
+        const bookName = document.getElementById('searchBookName').value;
+        const author = document.getElementById('searchAuthor').value;
+        const categoryId = document.getElementById('searchCategory').value;
+        let url = `/api/book/page?current=${bookPage.current}&size=${bookPage.size}`;
+        if (bookName) url += `&bookName=${encodeURIComponent(bookName)}`;
+        if (author) url += `&author=${encodeURIComponent(author)}`;
+        if (categoryId) url += `&categoryId=${categoryId}`;
+        const data = await request(url);
+        if (data && data.data) {
+            const page = data.data;
+            const canEdit = isAdmin();
+            const tbody = document.getElementById('bookTable');
+            tbody.innerHTML = (page.records || []).map(b => {
+                const cat = categories.find(c => c.id === b.categoryId);
+                return `<tr>
+                    <td>${b.bookName}</td><td>${b.author || ''}</td><td>${b.publisher || ''}</td>
+                    <td>${cat ? cat.categoryName : '-'}</td><td>${b.stock}</td>
+                    <td><span class="status-tag ${b.status === 1 ? 'status-on' : 'status-off'}">${b.status === 1 ? '上架' : '下架'}</span></td>
+                    <td>${canEdit ? `<button class="btn btn-primary" onclick="editBook(${b.id})">编辑</button> <button class="btn btn-danger" onclick="deleteBook(${b.id})">删除</button>` : '-'}</td>
+                </tr>`;
+            }).join('');
+            renderPagination('bookPagination', page, bookPage, loadBooks);
+        }
+    }
+
+    function renderPagination(containerId, page, pageObj, loadFn) {
+        const container = document.getElementById(containerId);
+        const totalPages = page.pages || Math.ceil(page.total / page.size) || 1;
+        let html = `<button ${page.current <= 1 ? 'disabled' : ''} onclick="(${pageObj === bookPage ? 'bookPage' : 'userPage'}).current=${page.current - 1};${loadFn.name}()">上一页</button>`;
+        html += `<span style="line-height:32px;font-size:14px;">第 ${page.current} / ${totalPages} 页，共 ${page.total} 条</span>`;
+        html += `<button ${page.current >= totalPages ? 'disabled' : ''} onclick="(${pageObj === bookPage ? 'bookPage' : 'userPage'}).current=${page.current + 1};${loadFn.name}()">下一页</button>`;
+        container.innerHTML = html;
+    }
+
+    function showBookModal() {
+        document.getElementById('bookModalTitle').textContent = '新增图书';
+        document.getElementById('bookId').value = '';
+        document.getElementById('bookName').value = '';
+        document.getElementById('bookAuthor').value = '';
+        document.getElementById('bookPublisher').value = '';
+        document.getElementById('bookCategoryId').value = '';
+        document.getElementById('bookStock').value = '0';
+        document.getElementById('bookStatus').value = '1';
+        document.getElementById('bookModal').classList.remove('hidden');
+        document.getElementById('bookModalOverlay').style.display = 'block';
+    }
+
+    function closeBookModal() {
+        document.getElementById('bookModal').classList.add('hidden');
+        document.getElementById('bookModalOverlay').style.display = 'none';
+    }
+
+    async function editBook(id) {
+        const data = await request('/api/book/detail/' + id);
+        if (data && data.data) {
+            const b = data.data;
+            document.getElementById('bookModalTitle').textContent = '编辑图书';
+            document.getElementById('bookId').value = b.id;
+            document.getElementById('bookName').value = b.bookName;
+            document.getElementById('bookAuthor').value = b.author || '';
+            document.getElementById('bookPublisher').value = b.publisher || '';
+            document.getElementById('bookCategoryId').value = b.categoryId || '';
+            document.getElementById('bookStock').value = b.stock;
+            document.getElementById('bookStatus').value = b.status;
+            document.getElementById('bookModal').classList.remove('hidden');
+            document.getElementById('bookModalOverlay').style.display = 'block';
+        }
+    }
+
+    async function saveBook() {
+        const id = document.getElementById('bookId').value;
+        const body = {
+            bookName: document.getElementById('bookName').value,
+            author: document.getElementById('bookAuthor').value,
+            publisher: document.getElementById('bookPublisher').value,
+            categoryId: document.getElementById('bookCategoryId').value ? parseInt(document.getElementById('bookCategoryId').value) : null,
+            stock: parseInt(document.getElementById('bookStock').value) || 0,
+            status: parseInt(document.getElementById('bookStatus').value)
+        };
+        if (!body.bookName) { showMsg('书名不能为空', 'error'); return; }
+        let data;
+        if (id) {
+            body.id = parseInt(id);
+            data = await request('/api/book/update', { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+            data = await request('/api/book/add', { method: 'POST', body: JSON.stringify(body) });
+        }
+        if (data) { showMsg('保存成功', 'success'); closeBookModal(); loadBooks(); }
+    }
+
+    async function deleteBook(id) {
+        if (!confirm('确定删除该图书吗？')) return;
+        const data = await request('/api/book/delete/' + id, { method: 'DELETE' });
+        if (data) { showMsg('删除成功', 'success'); loadBooks(); }
+    }
+
+    // 用户管理
+    async function loadUsers() {
+        const username = document.getElementById('searchUsername').value;
+        let url = `/api/user/page?current=${userPage.current}&size=${userPage.size}`;
+        if (username) url += `&username=${encodeURIComponent(username)}`;
+        const data = await request(url);
+        if (data && data.data) {
+            const page = data.data;
+            const tbody = document.getElementById('userTable');
+            tbody.innerHTML = (page.records || []).map(u => `<tr>
+                <td>${u.username}</td><td>${u.nickname || ''}</td>
+                <td><span class="role-tag ${getRoleTagClass(u.roleCode)}">${getRoleLabel(u.roleCode)}</span></td>
+                <td><span class="status-tag ${u.status === 1 ? 'status-on' : 'status-off'}">${u.status === 1 ? '启用' : '禁用'}</span></td>
+                <td>${u.gmtCreate || ''}</td>
+                <td><button class="btn btn-primary" onclick="editUser(${u.id})">编辑</button> <button class="btn btn-danger" onclick="deleteUser(${u.id})">删除</button></td>
+            </tr>`).join('');
+            renderPagination('userPagination', page, userPage, loadUsers);
+        }
+    }
+
+    function showUserModal() {
+        document.getElementById('userModalTitle').textContent = '新增用户';
+        document.getElementById('userId').value = '';
+        document.getElementById('userUsername').value = '';
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userNickname').value = '';
+        document.getElementById('userRoleCode').value = 'USER';
+        document.getElementById('userStatus').value = '1';
+        document.getElementById('userModal').classList.remove('hidden');
+        document.getElementById('userModalOverlay').style.display = 'block';
+    }
+
+    function closeUserModal() {
+        document.getElementById('userModal').classList.add('hidden');
+        document.getElementById('userModalOverlay').style.display = 'none';
+    }
+
+    async function editUser(id) {
+        const data = await request('/api/user/detail/' + id);
+        if (data && data.data) {
+            const u = data.data;
+            document.getElementById('userModalTitle').textContent = '编辑用户';
+            document.getElementById('userId').value = u.id;
+            document.getElementById('userUsername').value = u.username;
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userNickname').value = u.nickname || '';
+            document.getElementById('userRoleCode').value = u.roleCode;
+            document.getElementById('userStatus').value = u.status;
+            document.getElementById('userModal').classList.remove('hidden');
+            document.getElementById('userModalOverlay').style.display = 'block';
+        }
+    }
+
+    async function saveUser() {
+        const id = document.getElementById('userId').value;
+        const body = {
+            username: document.getElementById('userUsername').value,
+            password: document.getElementById('userPassword').value || undefined,
+            nickname: document.getElementById('userNickname').value,
+            roleCode: document.getElementById('userRoleCode').value,
+            status: parseInt(document.getElementById('userStatus').value)
+        };
+        if (!body.username) { showMsg('用户名不能为空', 'error'); return; }
+        if (!body.roleCode) { showMsg('角色不能为空', 'error'); return; }
+        let data;
+        if (id) {
+            body.id = parseInt(id);
+            data = await request('/api/user/update', { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+            if (!body.password) { showMsg('新增用户时密码不能为空', 'error'); return; }
+            data = await request('/api/user/add', { method: 'POST', body: JSON.stringify(body) });
+        }
+        if (data) { showMsg('保存成功', 'success'); closeUserModal(); loadUsers(); }
+    }
+
+    async function deleteUser(id) {
+        if (!confirm('确定删除该用户吗？')) return;
+        const data = await request('/api/user/delete/' + id, { method: 'DELETE' });
+        if (data) { showMsg('删除成功', 'success'); loadUsers(); }
+    }
+
+    // 页面初始化 - 检查是否已登录
+    (async function init() {
+        const data = await request('/api/auth/current');
+        if (data && data.data) {
+            currentUser = data.data;
+            showMainPage();
+        } else {
+            showLoginPage();
+        }
+    })();
+</script>
+</body>
+</html>

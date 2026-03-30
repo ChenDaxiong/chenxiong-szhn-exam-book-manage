@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.15</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+    <artifactId>chenxiong-szhn-book-manage</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>chenxiong-szhn-book-manage</name>
+    <url>http://maven.apache.org</url>
+    <modules>
+        <module>book-manage-biz-api</module>
+        <module>book-manage-biz</module>
+        <module>book-manage-member</module>
+        <module>book-manage-member-api</module>
+        <module>book-manage-web</module>
+        <module>book-manage-common</module>
+    </modules>
+
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lombok.version>1.18.30</lombok.version>
+        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
+        <hutool.version>5.8.21</hutool.version>
+        <swagger2.version>2.9.2</swagger2.version>
+        <swagger-models.version>1.5.22</swagger-models.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 子模块依赖 -->
+            <dependency>
+                <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+                <artifactId>book-manage-biz-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+                <artifactId>book-manage-biz</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+                <artifactId>book-manage-member</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+                <artifactId>book-manage-member-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chenxiong.szhn.exam.book.manage</groupId>
+                <artifactId>book-manage-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${swagger2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger-ui</artifactId>
+                <version>${swagger2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger-models.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.14.0</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+</project>
