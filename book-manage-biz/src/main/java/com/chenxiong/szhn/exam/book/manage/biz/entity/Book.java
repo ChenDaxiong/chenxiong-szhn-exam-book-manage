@@ -1,6 +1,7 @@
 package com.chenxiong.szhn.exam.book.manage.biz.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.chenxiong.szhn.exam.book.manage.common.base.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -36,4 +37,8 @@ public class Book extends BaseEntity {
 
     @ApiModelProperty("状态：0-下架，1-上架")
     private Integer status;
+
+    @ApiModelProperty("乐观锁版本号")
+    @Version
+    private Integer version;
 }

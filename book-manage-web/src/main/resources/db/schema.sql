@@ -45,3 +45,23 @@ CREATE TABLE IF NOT EXISTS book (
 
 -- 书名+作者 联合唯一索引
 CREATE UNIQUE INDEX IF NOT EXISTS idx_book_name_author ON book(book_name, author);
+
+
+-- 图书借阅记录表
+CREATE TABLE IF NOT EXISTS book_borrow_record (
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    user_id            BIGINT       NOT NULL COMMENT '借阅用户ID',
+    book_id            BIGINT       NOT NULL COMMENT '图书ID',
+    book_name          VARCHAR(128) DEFAULT '' COMMENT '书名',
+    borrow_time        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP COMMENT '借阅时间',
+    plan_return_time   TIMESTAMP    NULL COMMENT '计划归还时间',
+    actual_return_time TIMESTAMP    NULL COMMENT '实际归还时间',
+    remark             VARCHAR(256) DEFAULT '' COMMENT '备注',
+    status             INT          DEFAULT 1 COMMENT '状态：1-借阅中，0-已归还',
+    deleted            TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除 0未删除 1已删除',
+    gmt_create         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    gmt_modified       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间'
+);
+
+-- 用户ID索引（用于查询用户的借阅列表）
+CREATE INDEX IF NOT EXISTS idx_borrow_user_id ON book_borrow_record(user_id);
