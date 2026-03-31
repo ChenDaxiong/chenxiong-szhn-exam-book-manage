@@ -6,10 +6,13 @@ import cn.hutool.core.util.StrUtil;
 import com.chenxiong.szhn.exam.book.manage.biz.api.dto.BookDTO;
 import com.chenxiong.szhn.exam.book.manage.biz.api.service.BookWriteService;
 import com.chenxiong.szhn.exam.book.manage.biz.entity.Book;
+import com.chenxiong.szhn.exam.book.manage.biz.entity.BookBorrowRecord;
+import com.chenxiong.szhn.exam.book.manage.biz.manager.BookBorrowRecordManager;
 import com.chenxiong.szhn.exam.book.manage.biz.manager.BookManager;
 import com.chenxiong.szhn.exam.book.manage.common.annotation.ClearBookListCache;
 import com.chenxiong.szhn.exam.book.manage.common.annotation.ServiceLog;
 import com.chenxiong.szhn.exam.book.manage.common.constant.SystemConstant;
+import com.chenxiong.szhn.exam.book.manage.common.enums.BorrowStatusEnum;
 import com.chenxiong.szhn.exam.book.manage.common.result.ErrorCode;
 import com.chenxiong.szhn.exam.book.manage.common.result.ServiceResult;
 import com.chenxiong.szhn.exam.book.manage.common.util.ThrowUtil;
@@ -36,6 +39,9 @@ public class BookWriteServiceImpl implements BookWriteService {
 
     @Resource
     private CacheService cacheService;
+
+    @Resource
+    private BookBorrowRecordManager bookBorrowRecordManager;
 
     @ServiceLog("新增图书")
     @Override
@@ -94,6 +100,13 @@ public class BookWriteServiceImpl implements BookWriteService {
     public ServiceResult<Void> deleteBook(Long id) {
         Book book = bookManager.getById(id);
         ThrowUtil.throwIfNull(book, ErrorCode.BOOK_NOT_FOUND);
+
+        // 检查是否有未归还的借阅记录
+        long borrowingCount = bookBorrowRecordManager.lambdaQuery()
+                .eq(BookBorrowRecord::getBookId, id)
+                .eq(BookBorrowRecord::getStatus, BorrowStatusEnum.BORROWING.getCode())
+                .count();
+        ThrowUtil.throwIf(borrowingCount > 0, ErrorCode.PARAM_ERROR, "该图书仍有未归还记录，无法删除");
 
         bookManager.removeById(id);
         log.info("deleteBook success，ID：{}，bookName：{}",  book.getId(), book.getBookName());

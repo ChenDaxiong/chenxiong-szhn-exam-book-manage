@@ -27,11 +27,6 @@ public class RateLimitHelper {
      * @return
      */
     public boolean tryLimit(String key, long seconds) {
-        if (null != cacheService.get(key, String.class)) {
-            return false;
-        }
-        // 设置默认的值1
-        cacheService.put(key, DEFAULT_VALUE, seconds);
-        return true;
+        return cacheService.putIfAbsent(key, DEFAULT_VALUE, seconds);
     }
 }

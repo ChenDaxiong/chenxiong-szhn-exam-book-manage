@@ -39,4 +39,10 @@ public interface CacheService {
      * 按前缀批量删除缓存
      */
     void evictByPrefix(String prefix);
+
+    /**
+     * 原子性写入
+     */
+    <T> boolean putIfAbsent(String key, T value, long expireSeconds);
+
 }

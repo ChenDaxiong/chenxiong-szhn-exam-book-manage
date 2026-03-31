@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
@@ -18,46 +19,76 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CaffeineCacheService implements CacheService {
 
-    private final Cache<String, String> cache;
+    private static class ValueWrapper {
+        final String json;
+        final long expireNanos;
+
+        ValueWrapper(String json, long expireNanos) {
+            this.json = json;
+            this.expireNanos = expireNanos;
+        }
+    }
+
+    private final Cache<String, ValueWrapper> cache;
     private final ObjectMapper objectMapper;
+    private final long defaultExpireSeconds;
+
 
     public CaffeineCacheService(int maxSize, long expireSeconds, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+        this.defaultExpireSeconds = expireSeconds;
         this.cache = Caffeine.newBuilder()
                 .maximumSize(maxSize)
-                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .expireAfter(new Expiry<String, ValueWrapper>() {
+                    @Override
+                    public long expireAfterCreate(String key, ValueWrapper value, long currentTime) {
+                        return value.expireNanos;
+                    }
+
+                    @Override
+                    public long expireAfterUpdate(String key, ValueWrapper value,
+                                                  long currentTime, long currentDuration) {
+                        return value.expireNanos;
+                    }
+
+                    @Override
+                    public long expireAfterRead(String key, ValueWrapper value,
+                                                long currentTime, long currentDuration) {
+                        return currentDuration;
+                    }
+                })
                 .build();
     }
 
     @Override
     public <T> void put(String key, T value) {
-        String json = serialize(value);
-        if (json != null) {
-            cache.put(key, json);
-        }
+        put(key, value, defaultExpireSeconds);
     }
 
     @Override
     public <T> void put(String key, T value, long expireSeconds) {
-        put(key, value);
+        String json = serialize(value);
+        if (json != null) {
+            cache.put(key, new ValueWrapper(json, TimeUnit.SECONDS.toNanos(expireSeconds)));
+        }
     }
 
     @Override
     public <T> T get(String key, Class<T> clazz) {
-        String json = cache.getIfPresent(key);
-        if (json == null) {
+        ValueWrapper wrapper = cache.getIfPresent(key);
+        if (wrapper == null) {
             return null;
         }
-        return deserialize(json, clazz);
+        return deserialize(wrapper.json, clazz);
     }
 
     @Override
     public <T> T get(String key, TypeReference<T> typeRef) {
-        String json = cache.getIfPresent(key);
-        if (json == null) {
+        ValueWrapper wrapper = cache.getIfPresent(key);
+        if (wrapper == null) {
             return null;
         }
-        return deserialize(json, typeRef);
+        return deserialize(wrapper.json, typeRef);
     }
 
     @Override
@@ -95,5 +126,17 @@ public class CaffeineCacheService implements CacheService {
             log.error("CaffeineCacheService deserialize error", e);
             return null;
         }
+    }
+
+    @Override
+    public <T> boolean putIfAbsent(String key, T value, long expireSeconds) {
+        String json = serialize(value);
+        if (json == null) {
+            return false;
+        }
+        long nanos = TimeUnit.SECONDS.toNanos(expireSeconds);
+        // 原子操作
+        ValueWrapper existing = cache.asMap().putIfAbsent(key, new ValueWrapper(json, nanos));
+        return existing == null;
     }
 }

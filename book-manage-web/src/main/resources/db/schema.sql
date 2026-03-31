@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS book (
     category_id  BIGINT       DEFAULT NULL COMMENT '分类ID',
     stock        INT          DEFAULT 0 COMMENT '库存数量',
     status       INT          DEFAULT 1 COMMENT '状态：0-下架，1-上架',
+    version      INT          DEFAULT 0 COMMENT '乐观锁版本号',
     deleted      TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除 0未删除 1已删除',
     gmt_create   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     gmt_modified TIMESTAMP    DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间'
