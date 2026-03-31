@@ -7,6 +7,7 @@ import com.chenxiong.szhn.exam.book.manage.biz.api.dto.BookDTO;
 import com.chenxiong.szhn.exam.book.manage.biz.api.service.BookWriteService;
 import com.chenxiong.szhn.exam.book.manage.biz.entity.Book;
 import com.chenxiong.szhn.exam.book.manage.biz.manager.BookManager;
+import com.chenxiong.szhn.exam.book.manage.common.annotation.ClearBookListCache;
 import com.chenxiong.szhn.exam.book.manage.common.annotation.ServiceLog;
 import com.chenxiong.szhn.exam.book.manage.common.constant.SystemConstant;
 import com.chenxiong.szhn.exam.book.manage.common.result.ErrorCode;
@@ -39,6 +40,7 @@ public class BookWriteServiceImpl implements BookWriteService {
     @ServiceLog("新增图书")
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @ClearBookListCache
     public ServiceResult<Void> addBook(BookDTO dto) {
         ThrowUtil.throwIf(StrUtil.isBlank(dto.getBookName()), ErrorCode.PARAM_ERROR, "图书名称不能为空");
 
@@ -54,7 +56,6 @@ public class BookWriteServiceImpl implements BookWriteService {
         book.setStatus(Optional.ofNullable(dto.getStatus()).orElse(SystemConstant.STATUS_ENABLE));
 
         bookManager.save(book);
-        cacheService.evictByPrefix(BookReadServiceImpl.CACHE_KEY_BOOK_LIST);
         log.info("addBook success，bookName：{}", book.getBookName());
         return ServiceResult.success();
     }
@@ -62,6 +63,7 @@ public class BookWriteServiceImpl implements BookWriteService {
     @ServiceLog("修改图书")
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @ClearBookListCache
     public ServiceResult<Void> updateBook(BookDTO dto) {
         ThrowUtil.throwIfNull(dto.getId(), ErrorCode.PARAM_ERROR, "图书ID不能为空");
 
@@ -81,7 +83,6 @@ public class BookWriteServiceImpl implements BookWriteService {
                 .setIgnoreProperties("id"));
 
         bookManager.updateById(book);
-        cacheService.evictByPrefix(BookReadServiceImpl.CACHE_KEY_BOOK_LIST);
         log.info("updateBook success，ID：{}，bookName：{}", book.getId(), book.getBookName());
         return ServiceResult.success();
     }
@@ -89,12 +90,12 @@ public class BookWriteServiceImpl implements BookWriteService {
     @ServiceLog("删除图书")
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @ClearBookListCache
     public ServiceResult<Void> deleteBook(Long id) {
         Book book = bookManager.getById(id);
         ThrowUtil.throwIfNull(book, ErrorCode.BOOK_NOT_FOUND);
 
         bookManager.removeById(id);
-        cacheService.evictByPrefix(BookReadServiceImpl.CACHE_KEY_BOOK_LIST);
         log.info("deleteBook success，ID：{}，bookName：{}",  book.getId(), book.getBookName());
         return ServiceResult.success();
     }

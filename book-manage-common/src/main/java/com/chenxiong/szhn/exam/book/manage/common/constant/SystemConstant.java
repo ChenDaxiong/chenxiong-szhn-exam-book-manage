@@ -81,4 +81,9 @@ public final class SystemConstant {
      */
     public static final int USER_NAME_MAX_LENGTH = 20;
 
+    /**
+     * 缓存列表key
+     */
+    public static final String CACHE_KEY_BOOK_LIST = "book:list:";
+
 }
