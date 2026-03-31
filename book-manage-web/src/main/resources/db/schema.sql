@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS book (
 
 -- 书名+作者 联合唯一索引
 CREATE UNIQUE INDEX IF NOT EXISTS idx_book_name_author ON book(book_name, author);
+-- 添加类目id索引，用于图书列表的类目筛选查询
+CREATE INDEX IF NOT EXISTS idx_category_id ON book(category_id);
 
 
 -- 图书借阅记录表
