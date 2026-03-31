@@ -39,7 +39,7 @@ public class BookBorrowServiceImpl implements BookBorrowService {
     /**
      * 限流时间毫秒
      */
-    private static final long RATE_LIMIT_INTERVAL_MS = 5000L;
+    private static final long RATE_LIMIT_INTERVAL_SECONDS = 5L;
 
     /**
      * 借书限流前缀
@@ -165,7 +165,7 @@ public class BookBorrowServiceImpl implements BookBorrowService {
 
 
     private void checkRateLimit(String rateLimitKey) {
-        ThrowUtil.throwIf(!rateLimitHelper.tryLimit(rateLimitKey,RATE_LIMIT_INTERVAL_MS)
+        ThrowUtil.throwIf(!rateLimitHelper.tryLimit(rateLimitKey,RATE_LIMIT_INTERVAL_SECONDS)
                 , ErrorCode.BORROW_RATE_LIMITED);
     }
 

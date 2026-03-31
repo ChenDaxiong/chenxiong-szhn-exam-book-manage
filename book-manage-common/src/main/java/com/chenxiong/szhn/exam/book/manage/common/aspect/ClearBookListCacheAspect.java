@@ -26,7 +26,7 @@ public class ClearBookListCacheAspect {
     private CacheService cacheService;
 
     @Around("@annotation(clearBookListCache)")
-    public Object around(ProceedingJoinPoint joinPoint, ClearBookListCache cache) throws Throwable {
+    public Object around(ProceedingJoinPoint joinPoint, ClearBookListCache clearBookListCache) throws Throwable {
         Object result = joinPoint.proceed();
         try {
             /**

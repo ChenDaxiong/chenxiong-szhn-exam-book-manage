@@ -99,4 +99,16 @@ public class RedisCacheService implements CacheService {
             return null;
         }
     }
+
+    @Override
+    public <T> boolean putIfAbsent(String key, T value, long expireSeconds) {
+        String json = serialize(value);
+        if (json == null) {
+            return false;
+        }
+        Boolean result = redisTemplate.opsForValue()
+                .setIfAbsent(key, json, expireSeconds, TimeUnit.SECONDS);
+        return Boolean.TRUE.equals(result);
+    }
+
 }
